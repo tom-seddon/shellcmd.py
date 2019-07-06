@@ -48,6 +48,12 @@ def rmtree_cmd(options):
 ##########################################################################
 ##########################################################################
 
+def rmfile_cmd(options):
+    os.unlink(options.path)
+
+##########################################################################
+##########################################################################
+
 def mkdir_cmd(options):
     path=os.path.normpath(options.path)
     if not os.path.isdir(path): os.makedirs(path)
@@ -72,6 +78,20 @@ def strftime_cmd(options):
     pv('strftime format used: ``%s\'\'\n'%fmt)
     print datetime.datetime.now().strftime(fmt)
 
+##########################################################################
+##########################################################################
+
+def sha1_cmd(options):
+    m=hashlib.sha1()
+    with open(options.path,'rb') as f: m.update(f.read())
+    print '%s  %s'%(m.hexdigest(),options.path)
+
+##########################################################################
+##########################################################################
+
+def blank_line_cmd(options):
+    print
+    
 ##########################################################################
 ##########################################################################
 
@@ -100,6 +120,10 @@ def create_parser():
     rmtree.add_argument('path',metavar='FOLDER',help='path of folder to remove')
     rmtree.set_defaults(fun=rmtree_cmd)
 
+    rmfile=subparsers.add_parser('rm-file',help='remove single file')
+    rmfile.add_argument('path',metavar='FILE',help='path of file to remove')
+    rmfile.set_defaults(fun=rmfile_cmd)
+
     mkdir=subparsers.add_parser('mkdir',help='create folder structure')
     mkdir.add_argument('path',metavar='FOLDER',help='folder structure to create')
     mkdir.set_defaults(fun=mkdir_cmd)
@@ -112,6 +136,13 @@ def create_parser():
     strftime.add_argument('-d','--directive-prefix',default=None,help='directive prefix used in place of %')
     strftime.add_argument('fmt',metavar='FMT',help='strftime format string')
     strftime.set_defaults(fun=strftime_cmd)
+
+    sha1=subparsers.add_parser('sha1',help='print SHA1 digest of file')
+    sha1.add_argument('path',metavar='FILE',help='file to process')
+    sha1.set_defaults(fun=sha1_cmd)
+
+    blank_line=subparsers.add_parser('blank-line',help='print blank line')
+    blank_line.set_defaults(fun=blank_line_cmd)
 
     return parser
 
