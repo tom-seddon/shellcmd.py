@@ -91,11 +91,18 @@ def sha1_cmd(options):
 
 def blank_line_cmd(options):
     print()
+
+##########################################################################
+##########################################################################
+
+def cat_cmd(options):
+    for path in options.paths:
+        with open(path,'rt') as f: sys.stdout.write(f.read())
     
 ##########################################################################
 ##########################################################################
 
-def main(options):
+def shellcmd(options):
     global g_verbose
     g_verbose=options.verbose
 
@@ -104,12 +111,17 @@ def main(options):
 ##########################################################################
 ##########################################################################
 
-def create_parser():
+def main(argv):
     parser=argparse.ArgumentParser()
 
     parser.add_argument('-v','--verbose',action='store_true',help='be more verbose')
+    parser.set_defaults(fun=None)
 
     subparsers=parser.add_subparsers(title='sub-command help')
+
+    cat=subparsers.add_parser('cat',help='print file(s) to standard output')
+    cat.add_argument('paths',metavar='FILE',nargs='+',help='file(s) to print')
+    cat.set_defaults(fun=cat_cmd)
 
     cp=subparsers.add_parser('copy-file',help='copy file')
     cp.add_argument('src',metavar='SRC',help='file to copy from')
@@ -144,6 +156,14 @@ def create_parser():
     blank_line=subparsers.add_parser('blank-line',help='print blank line')
     blank_line.set_defaults(fun=blank_line_cmd)
 
-    return parser
+    options=parser.parse_args(argv)
+    if options.fun is None:
+        parser.print_help()
+        sys.exit(1)
 
-if __name__=='__main__': main(create_parser().parse_args())
+    shellcmd(options)
+
+##########################################################################
+##########################################################################
+
+if __name__=='__main__': main(sys.argv[1:])
