@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import sys,os,argparse,shutil,datetime
+import sys,os,argparse,shutil,datetime,hashlib
 
 ##########################################################################
 ##########################################################################
