@@ -145,7 +145,7 @@ def main(argv):
     touch.set_defaults(fun=touch_cmd)
 
     strftime=subparsers.add_parser('strftime',help='format date like strftime/date +XXX')
-    strftime.add_argument('-d','--directive-prefix',default=None,help='directive prefix used in place of %')
+    strftime.add_argument('-d','--directive-prefix',default=None,help='directive prefix used in place of %%')
     strftime.add_argument('fmt',metavar='FMT',help='strftime format string')
     strftime.set_defaults(fun=strftime_cmd)
 
