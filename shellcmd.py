@@ -98,6 +98,12 @@ def blank_line_cmd(options):
 def cat_cmd(options):
     for path in options.paths:
         with open(path,'rt') as f: sys.stdout.write(f.read())
+
+##########################################################################
+##########################################################################
+        
+def realpath_cmd(options):
+    print(os.path.realpath(options.path))
     
 ##########################################################################
 ##########################################################################
@@ -156,6 +162,10 @@ def main(argv):
     blank_line=subparsers.add_parser('blank-line',help='print blank line')
     blank_line.set_defaults(fun=blank_line_cmd)
 
+    realpath=subparsers.add_parser('realpath',help='print real path of file')
+    realpath.add_argument('path',metavar='PATH',help='path')
+    realpath.set_defaults(fun=realpath_cmd)
+    
     options=parser.parse_args(argv)
     if options.fun is None:
         parser.print_help()
