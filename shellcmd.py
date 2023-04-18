@@ -1,10 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys,os,argparse,shutil,datetime,hashlib
 
 ##########################################################################
 ##########################################################################
 #
-# shellcmd.py - Python 2.x script that performs various shell
+# shellcmd.py - Python 3 script that performs various shell
 # command-type operations
 # 
 # Copyright (C) 2019 Tom Seddon
