@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import sys,os,argparse,shutil,datetime,hashlib
+import sys,os,argparse,shutil,datetime,hashlib,glob
 
 ##########################################################################
 ##########################################################################
@@ -104,6 +104,35 @@ def cat_cmd(options):
         
 def realpath_cmd(options):
     print(os.path.realpath(options.path))
+
+##########################################################################
+##########################################################################
+    
+def stat_cmd(options):
+    paths=set()
+    for path in options.paths:
+        matches=glob.glob(path)
+        for match in matches: paths.add(match)
+
+    paths=list(paths)
+    paths.sort()
+
+    for path in paths:
+        try: st=os.stat(path)
+        except: st=None
+
+        if options.basename: path=os.path.basename(path)
+
+        str=''
+        
+        str+='%10s '%('?' if st is None else '{:,}'.format(st.st_size))
+        
+        if options.hex_size:
+            str+='%10s '%('' if st is None else '0x%x'%st.st_size)
+
+        str+=' '+path
+
+        print(str)
     
 ##########################################################################
 ##########################################################################
@@ -125,6 +154,9 @@ def main(argv):
 
     subparsers=parser.add_subparsers(title='sub-command help')
 
+    blank_line=subparsers.add_parser('blank-line',help='print blank line')
+    blank_line.set_defaults(fun=blank_line_cmd)
+
     cat=subparsers.add_parser('cat',help='print file(s) to standard output')
     cat.add_argument('paths',metavar='FILE',nargs='+',help='file(s) to print')
     cat.set_defaults(fun=cat_cmd)
@@ -134,10 +166,6 @@ def main(argv):
     cp.add_argument('dest',metavar='DEST',help='file/folder path to copy to')
     cp.set_defaults(fun=cp_cmd)
 
-    rmtree=subparsers.add_parser('rm-tree',help='remove folder tree')
-    rmtree.add_argument('path',metavar='FOLDER',help='path of folder to remove')
-    rmtree.set_defaults(fun=rmtree_cmd)
-
     rmfile=subparsers.add_parser('rm-file',help='remove single file')
     rmfile.add_argument('path',metavar='FILE',help='path of file to remove')
     rmfile.set_defaults(fun=rmfile_cmd)
@@ -146,26 +174,35 @@ def main(argv):
     mkdir.add_argument('path',metavar='FOLDER',help='folder structure to create')
     mkdir.set_defaults(fun=mkdir_cmd)
 
-    touch=subparsers.add_parser('touch',help='update file modified time, creating file if non-existent')
-    touch.add_argument('path',metavar='FILE',help='file to touch')
-    touch.set_defaults(fun=touch_cmd)
+    realpath=subparsers.add_parser('realpath',help='print real path of file')
+    realpath.add_argument('path',metavar='PATH',help='path')
+    realpath.set_defaults(fun=realpath_cmd)
 
-    strftime=subparsers.add_parser('strftime',help='format date like strftime/date +XXX')
-    strftime.add_argument('-d','--directive-prefix',default=None,help='directive prefix used in place of %%')
-    strftime.add_argument('fmt',metavar='FMT',help='strftime format string')
-    strftime.set_defaults(fun=strftime_cmd)
+    rmtree=subparsers.add_parser('rm-tree',help='remove folder tree')
+    rmtree.add_argument('path',metavar='FOLDER',help='path of folder to remove')
+    rmtree.set_defaults(fun=rmtree_cmd)
 
     sha1=subparsers.add_parser('sha1',help='print SHA1 digest of file')
     sha1.add_argument('path',metavar='FILE',help='file to process')
     sha1.set_defaults(fun=sha1_cmd)
 
-    blank_line=subparsers.add_parser('blank-line',help='print blank line')
-    blank_line.set_defaults(fun=blank_line_cmd)
-
-    realpath=subparsers.add_parser('realpath',help='print real path of file')
-    realpath.add_argument('path',metavar='PATH',help='path')
-    realpath.set_defaults(fun=realpath_cmd)
+    stat=subparsers.add_parser('stat',help='print human-readable file info, like dir or ls -l')
+    stat.add_argument('paths',metavar='PATH',default=[],nargs='+',help='''path(s) to list''')
+    stat.add_argument('--basename',action='store_true',help='''only show file basename''')
+    # I just happened to need this - feels like there should really be
+    # some kind of format string-type approach here?
+    stat.add_argument('--hex-size',action='store_true',help='''print size in hex''')
+    stat.set_defaults(fun=stat_cmd)
     
+    strftime=subparsers.add_parser('strftime',help='format date like strftime/date +XXX')
+    strftime.add_argument('-d','--directive-prefix',default=None,help='directive prefix used in place of %%')
+    strftime.add_argument('fmt',metavar='FMT',help='strftime format string')
+    strftime.set_defaults(fun=strftime_cmd)
+
+    touch=subparsers.add_parser('touch',help='update file modified time, creating file if non-existent')
+    touch.add_argument('path',metavar='FILE',help='file to touch')
+    touch.set_defaults(fun=touch_cmd)
+
     options=parser.parse_args(argv)
     if options.fun is None:
         parser.print_help()
