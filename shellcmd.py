@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import sys,os,argparse,shutil,datetime,hashlib,glob
+import sys,os,argparse,shutil,datetime,hashlib,glob,getpass
 
 ##########################################################################
 ##########################################################################
@@ -133,7 +133,12 @@ def stat_cmd(options):
         str+=' '+path
 
         print(str)
-    
+
+##########################################################################
+##########################################################################
+
+def whoami_cmd(options): print(getpass.getuser())
+
 ##########################################################################
 ##########################################################################
 
@@ -202,6 +207,9 @@ def main(argv):
     touch=subparsers.add_parser('touch',help='update file modified time, creating file if non-existent')
     touch.add_argument('path',metavar='FILE',help='file to touch')
     touch.set_defaults(fun=touch_cmd)
+
+    whoami=subparsers.add_parser('whoami',help='''print current user''')
+    whoami.set_defaults(fun=whoami_cmd)
 
     options=parser.parse_args(argv)
     if options.fun is None:
