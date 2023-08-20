@@ -132,6 +132,9 @@ def stat_cmd(options):
 
         str+=' '+path
 
+        if options.size_budget is not None and st is not None:
+            str+=' ({:,} left)'.format(options.size_budget-st.st_size)
+
         print(str)
 
 ##########################################################################
@@ -150,6 +153,8 @@ def shellcmd(options):
 
 ##########################################################################
 ##########################################################################
+
+def auto_int(x): return int(x,0)
 
 def main(argv):
     parser=argparse.ArgumentParser()
@@ -197,6 +202,7 @@ def main(argv):
     # I just happened to need this - feels like there should really be
     # some kind of format string-type approach here?
     stat.add_argument('--hex-size',action='store_true',help='''print size in hex''')
+    stat.add_argument('--size-budget',type=auto_int,default=None,help='''show remaining headroom''')
     stat.set_defaults(fun=stat_cmd)
     
     strftime=subparsers.add_parser('strftime',help='format date like strftime/date +XXX')
