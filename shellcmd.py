@@ -145,6 +145,18 @@ def whoami_cmd(options): print(getpass.getuser())
 ##########################################################################
 ##########################################################################
 
+def move_cmd(options):
+    # I don't think having move and rename as the same action is
+    # good...
+    if not os.path.isdir(options.dest):
+        sys.stderr.write('FATAL: not a folder: %s\n'%options.dest)
+        sys.exit(1)
+        
+    shutil.move(options.src,options.dest)
+
+##########################################################################
+##########################################################################
+
 def shellcmd(options):
     global g_verbose
     g_verbose=options.verbose
@@ -183,6 +195,11 @@ def main(argv):
     mkdir=subparsers.add_parser('mkdir',help='create folder structure')
     mkdir.add_argument('path',metavar='FOLDER',help='folder structure to create')
     mkdir.set_defaults(fun=mkdir_cmd)
+
+    move=subparsers.add_parser('move',help='move folder=file')
+    move.add_argument('src',metavar='SRC',help='''folder/file to move''')
+    move.add_argument('dest',metavar='DEST',help='''folder to move it to''')
+    move.set_defaults(fun=move_cmd)
 
     realpath=subparsers.add_parser('realpath',help='print real path of file')
     realpath.add_argument('path',metavar='PATH',help='path')
