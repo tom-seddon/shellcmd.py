@@ -124,15 +124,16 @@ def realpath_cmd(options):
     
 def stat_cmd(options):
     import glob
-    
-    paths=set()
+
+    seen_paths=set()
+    paths=[]
     for path in options.paths:
         matches=glob.glob(path)
-        for match in matches: paths.add(match)
-
-    paths=list(paths)
-    paths.sort()
-
+        for match in matches:
+            if match not in seen_paths:
+                paths.append(match)
+                seen_paths.add(match)
+    
     for path in paths:
         try: st=os.stat(path)
         except: st=None
