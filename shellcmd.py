@@ -82,9 +82,16 @@ def strftime_cmd(options):
 ##########################################################################
 
 def sha1_cmd(options):
+    with open(options.path,'rb') as f: data=f.read()
+
+    for ignore in options.ignores:
+        data=data.replace(bytes(ignore,'utf-8'),b'')
+
     m=hashlib.sha1()
-    with open(options.path,'rb') as f: m.update(f.read())
+    m.update(data)
     print('%s  %s'%(m.hexdigest(),options.path))
+
+    with open('%s.dat'%m.hexdigest(),'wb') as f: f.write(data)
 
 ##########################################################################
 ##########################################################################
@@ -210,6 +217,7 @@ def main(argv):
     rmtree.set_defaults(fun=rmtree_cmd)
 
     sha1=subparsers.add_parser('sha1',help='print SHA1 digest of file')
+    sha1.add_argument('--ignore',dest='ignores',action='append',default=[],help='''substring to ignore - will be removed from data before doing the SHA1''')
     sha1.add_argument('path',metavar='FILE',help='file to process')
     sha1.set_defaults(fun=sha1_cmd)
 
