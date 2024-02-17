@@ -59,8 +59,9 @@ def rmfile_cmd(options):
 ##########################################################################
 
 def mkdir_cmd(options):
-    path=os.path.normpath(options.path)
-    if not os.path.isdir(path): os.makedirs(path)
+    for path in options.paths:
+        path=os.path.normpath(path)
+        if not os.path.isdir(path): os.makedirs(path)
 
 ##########################################################################
 ##########################################################################
@@ -214,7 +215,7 @@ def main(argv):
     rmfile.set_defaults(fun=rmfile_cmd)
 
     mkdir=subparsers.add_parser('mkdir',help='create folder structure')
-    mkdir.add_argument('path',metavar='FOLDER',help='folder structure to create')
+    mkdir.add_argument('paths',metavar='FOLDER',default=[],nargs='+',help='folder structure to create')
     mkdir.set_defaults(fun=mkdir_cmd)
 
     move=subparsers.add_parser('move',help='move folder=file')
