@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import sys,os,argparse,shutil,datetime,hashlib,glob,getpass
+import sys,os,argparse
 
 ##########################################################################
 ##########################################################################
@@ -37,12 +37,16 @@ def pv(x):
 ##########################################################################
 
 def cp_cmd(options):
+    import shutil
+    
     shutil.copy(options.src,options.dest)
 
 ##########################################################################
 ##########################################################################
     
 def rmtree_cmd(options):
+    import shutil
+    
     if os.path.isdir(options.path): shutil.rmtree(options.path)
 
 ##########################################################################
@@ -71,6 +75,8 @@ def touch_cmd(options):
 ##########################################################################
 
 def strftime_cmd(options):
+    import datetime
+    
     fmt=options.fmt
     if options.directive_prefix is not None:
         fmt=fmt.replace(options.directive_prefix,'%')
@@ -82,6 +88,8 @@ def strftime_cmd(options):
 ##########################################################################
 
 def sha1_cmd(options):
+    import hashlib
+    
     with open(options.path,'rb') as f: data=f.read()
 
     for ignore in options.ignores:
@@ -90,8 +98,6 @@ def sha1_cmd(options):
     m=hashlib.sha1()
     m.update(data)
     print('%s  %s'%(m.hexdigest(),options.path))
-
-    with open('%s.dat'%m.hexdigest(),'wb') as f: f.write(data)
 
 ##########################################################################
 ##########################################################################
@@ -116,6 +122,8 @@ def realpath_cmd(options):
 ##########################################################################
     
 def stat_cmd(options):
+    import glob
+    
     paths=set()
     for path in options.paths:
         matches=glob.glob(path)
@@ -147,12 +155,16 @@ def stat_cmd(options):
 ##########################################################################
 ##########################################################################
 
-def whoami_cmd(options): print(getpass.getuser())
+def whoami_cmd(options):
+    import getpass
+    print(getpass.getuser())
 
 ##########################################################################
 ##########################################################################
 
 def move_cmd(options):
+    import shutil
+    
     # I don't think having move and rename as the same action is
     # good...
     if not os.path.isdir(options.dest):
@@ -165,6 +177,8 @@ def move_cmd(options):
 ##########################################################################
 
 def shellcmd(options):
+    import glob
+    
     global g_verbose
     g_verbose=options.verbose
 
