@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import sys,os,argparse
+import sys,argparse
 
 ##########################################################################
 ##########################################################################
@@ -45,7 +45,7 @@ def cp_cmd(options):
 ##########################################################################
     
 def rmtree_cmd(options):
-    import shutil
+    import os,shutil
     
     if os.path.isdir(options.path): shutil.rmtree(options.path)
 
@@ -53,12 +53,16 @@ def rmtree_cmd(options):
 ##########################################################################
 
 def rmfile_cmd(options):
+    import os
+    
     os.unlink(options.path)
 
 ##########################################################################
 ##########################################################################
 
 def mkdir_cmd(options):
+    import os
+    
     for path in options.paths:
         path=os.path.normpath(path)
         if not os.path.isdir(path): os.makedirs(path)
@@ -67,6 +71,8 @@ def mkdir_cmd(options):
 ##########################################################################
 
 def touch_cmd(options):
+    import os
+    
     if not os.path.isfile(options.path):
         with open(options.path,'wb'): pass
 
@@ -117,13 +123,15 @@ def cat_cmd(options):
 ##########################################################################
         
 def realpath_cmd(options):
+    import os
+    
     print(os.path.realpath(options.path))
 
 ##########################################################################
 ##########################################################################
     
 def stat_cmd(options):
-    import glob
+    import os,glob
 
     seen_paths=set()
     paths=[]
@@ -165,7 +173,7 @@ def whoami_cmd(options):
 ##########################################################################
 
 def move_cmd(options):
-    import shutil
+    import os,shutil
     
     # I don't think having move and rename as the same action is
     # good...
@@ -174,6 +182,19 @@ def move_cmd(options):
         sys.exit(1)
         
     shutil.move(options.src,options.dest)
+
+##########################################################################
+##########################################################################
+
+def cmp_cmd(options):
+    with open(options.path1,'rb') as f: a=f.read()
+    with open(options.path2,'rb') as f: b=f.read()
+    if a!=b:
+        if g_verbose:
+            sys.stderr.write(
+                'FATAL: files differ: %s and %s\n'%(options.path1,
+                                                    options.path2))
+        sys.exit(1)
 
 ##########################################################################
 ##########################################################################
@@ -206,14 +227,15 @@ def main(argv):
     cat.add_argument('paths',metavar='FILE',nargs='+',help='file(s) to print')
     cat.set_defaults(fun=cat_cmd)
 
+    cmp=subparsers.add_parser('cmp',help='compare smallish files as binary')
+    cmp.add_argument('path1',metavar='A',help='first file')
+    cmp.add_argument('path2',metavar='B',help='second file')
+    cmp.set_defaults(fun=cmp_cmd)
+
     cp=subparsers.add_parser('copy-file',help='copy file')
     cp.add_argument('src',metavar='SRC',help='file to copy from')
     cp.add_argument('dest',metavar='DEST',help='file/folder path to copy to')
     cp.set_defaults(fun=cp_cmd)
-
-    rmfile=subparsers.add_parser('rm-file',help='remove single file')
-    rmfile.add_argument('path',metavar='FILE',help='path of file to remove')
-    rmfile.set_defaults(fun=rmfile_cmd)
 
     mkdir=subparsers.add_parser('mkdir',help='create folder structure')
     mkdir.add_argument('paths',metavar='FOLDER',default=[],nargs='+',help='folder structure to create')
@@ -227,6 +249,10 @@ def main(argv):
     realpath=subparsers.add_parser('realpath',help='print real path of file')
     realpath.add_argument('path',metavar='PATH',help='path')
     realpath.set_defaults(fun=realpath_cmd)
+
+    rmfile=subparsers.add_parser('rm-file',help='remove single file')
+    rmfile.add_argument('path',metavar='FILE',help='path of file to remove')
+    rmfile.set_defaults(fun=rmfile_cmd)
 
     rmtree=subparsers.add_parser('rm-tree',help='remove folder tree')
     rmtree.add_argument('path',metavar='FOLDER',help='path of folder to remove')
