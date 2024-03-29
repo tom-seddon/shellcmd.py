@@ -54,8 +54,13 @@ def rmtree_cmd(options):
 
 def rmfile_cmd(options):
     import os
-    
-    os.unlink(options.path)
+
+    for path in options.paths:
+        try: os.unlink(path)
+        except FileNotFoundError:
+            if not options.force:
+                sys.stderr.write('''FATAL: file doesn't exist: %s'''%path)
+                sys.exit(1)
 
 ##########################################################################
 ##########################################################################
@@ -199,6 +204,54 @@ def cmp_cmd(options):
 ##########################################################################
 ##########################################################################
 
+def split_cmd(options):
+    suffix=0
+    with open(options.path,'rb') as f:
+        while True:
+            data=f.read(options.bytes)
+            if len(data)>0:
+                output_path='%s%d'%(options.prefix,suffix)
+                with open(output_path,'wb') as f2: f2.write(data)
+            if len(data)<options.bytes: break
+            suffix+=1
+
+##########################################################################
+##########################################################################
+
+def concat2(options,output_f):
+    for path in options.input_paths:
+        with open(path,'rb') as f: data=f.read()
+        if options.pad is not None:
+            if len(data)>options.pad:
+                sys.stderr.write(
+                    'FATAL: file larger than %d bytes: %s\n'%(options.pad,
+                                                              path))
+                sys.exit(1)
+            data+=bytes(options.pad-len(data))
+        if output_f is not None: output_f.write(data)
+
+def concat_cmd(options):
+    if options.output:
+        with open(options.output,'wb') as f: concat2(options,f)
+    else: concat2(options,None)
+
+
+##########################################################################
+##########################################################################
+
+def rename_cmd(options):
+    import os
+
+    # problem on Windows, but not an issue on Unix in all cases.
+    if os.path.isfile(options.dest) or os.path.isdir(options.dest):
+        sys.stderr.write('FATAL: already exists: %s\n'%options.dest)
+        sys.exit(1)
+        
+    os.rename(options.src,options.dest)
+
+##########################################################################
+##########################################################################
+
 def shellcmd(options):
     import glob
     
@@ -232,6 +285,12 @@ def main(argv):
     cmp.add_argument('path2',metavar='B',help='second file')
     cmp.set_defaults(fun=cmp_cmd)
 
+    concat=subparsers.add_parser('concat',help='''concatenate binary files''')
+    concat.add_argument('--pad',type=auto_int,metavar='N',help='''pad each file (if required) to %(metavar)s bytes. Fail if file is larger''')
+    concat.add_argument('-o','--output',metavar='FILE',help='''write output to %(metavar)s''')
+    concat.add_argument('input_paths',nargs='+',metavar='FILE',help='''read input from %(metavar)s''')
+    concat.set_defaults(fun=concat_cmd)
+
     cp=subparsers.add_parser('copy-file',help='copy file')
     cp.add_argument('src',metavar='SRC',help='file to copy from')
     cp.add_argument('dest',metavar='DEST',help='file/folder path to copy to')
@@ -241,7 +300,7 @@ def main(argv):
     mkdir.add_argument('paths',metavar='FOLDER',default=[],nargs='+',help='folder structure to create')
     mkdir.set_defaults(fun=mkdir_cmd)
 
-    move=subparsers.add_parser('move',help='move folder=file')
+    move=subparsers.add_parser('move',help='move folder/file')
     move.add_argument('src',metavar='SRC',help='''folder/file to move''')
     move.add_argument('dest',metavar='DEST',help='''folder to move it to''')
     move.set_defaults(fun=move_cmd)
@@ -250,8 +309,14 @@ def main(argv):
     realpath.add_argument('path',metavar='PATH',help='path')
     realpath.set_defaults(fun=realpath_cmd)
 
-    rmfile=subparsers.add_parser('rm-file',help='remove single file')
-    rmfile.add_argument('path',metavar='FILE',help='path of file to remove')
+    rename=subparsers.add_parser('rename',help='rename folder/file')
+    rename.add_argument('src',metavar='SRC',help='''old name''')
+    rename.add_argument('dest',metavar='DEST',help='''new name''')
+    rename.set_defaults(fun=rename_cmd)
+
+    rmfile=subparsers.add_parser('rm-file',help='remove files')
+    rmfile.add_argument('-f','--force',action='store_true',help='''don't fail if file doesn't exist''')
+    rmfile.add_argument('paths',metavar='FILE',default=[],nargs='+',help='path of file to remove')
     rmfile.set_defaults(fun=rmfile_cmd)
 
     rmtree=subparsers.add_parser('rm-tree',help='remove folder tree')
@@ -262,6 +327,12 @@ def main(argv):
     sha1.add_argument('--ignore',dest='ignores',action='append',default=[],help='''substring to ignore - will be removed from data before doing the SHA1''')
     sha1.add_argument('path',metavar='FILE',help='file to process')
     sha1.set_defaults(fun=sha1_cmd)
+
+    split=subparsers.add_parser('split',help='split file into parts')
+    split.add_argument('path',metavar='FILE',help='''read data from %(metavar)s''')
+    split.add_argument('prefix',metavar='PREFIX',help='''write data to file(s) named after %(metavar)s''')
+    split.add_argument('-b','--bytes',metavar='SIZE',help='''write max %(metavar)s byte(s) per output file''',required=True,type=auto_int)
+    split.set_defaults(fun=split_cmd)
 
     stat=subparsers.add_parser('stat',help='print human-readable file info, like dir or ls -l')
     stat.add_argument('paths',metavar='PATH',default=[],nargs='+',help='''path(s) to list''')
