@@ -59,7 +59,7 @@ def rmfile_cmd(options):
         try: os.unlink(path)
         except FileNotFoundError:
             if not options.force:
-                sys.stderr.write('''FATAL: file doesn't exist: %s'''%path)
+                sys.stderr.write('''FATAL: file doesn't exist: %s\n'''%path)
                 sys.exit(1)
 
 ##########################################################################
