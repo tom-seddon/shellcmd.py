@@ -121,7 +121,11 @@ def blank_line_cmd(options):
 ##########################################################################
 
 def cat_cmd(options):
+    import os.path
+    
     for path in options.paths:
+        if options.force:
+            if not os.path.isfile(path): continue
         with open(path,'rt') as f: sys.stdout.write(f.read())
 
 ##########################################################################
@@ -277,6 +281,7 @@ def main(argv):
     blank_line.set_defaults(fun=blank_line_cmd)
 
     cat=subparsers.add_parser('cat',help='print file(s) to standard output')
+    cat.add_argument('-f','--force',action='store_true',help='''ignore missing files. Pretend they're empty''')
     cat.add_argument('paths',metavar='FILE',nargs='+',help='file(s) to print')
     cat.set_defaults(fun=cat_cmd)
 
