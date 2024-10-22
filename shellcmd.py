@@ -55,6 +55,11 @@ def rmtree_cmd(options):
 def rmfile_cmd(options):
     import os
 
+    if len(options.paths)==0:
+        if not options.force:
+            sys.stderr.write('''FATAL: no files specified''')
+            sys.exit(1)
+
     for path in options.paths:
         try: os.unlink(path)
         except FileNotFoundError:
@@ -321,7 +326,7 @@ def main(argv):
 
     rmfile=subparsers.add_parser('rm-file',help='remove files')
     rmfile.add_argument('-f','--force',action='store_true',help='''don't fail if file doesn't exist''')
-    rmfile.add_argument('paths',metavar='FILE',default=[],nargs='+',help='path of file to remove')
+    rmfile.add_argument('paths',metavar='FILE',default=[],nargs='*',help='path of file to remove')
     rmfile.set_defaults(fun=rmfile_cmd)
 
     rmtree=subparsers.add_parser('rm-tree',help='remove folder tree')
