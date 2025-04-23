@@ -98,8 +98,11 @@ def strftime_cmd(options):
     if options.directive_prefix is not None:
         fmt=fmt.replace(options.directive_prefix,'%')
 
+    tz=None
+    if options.UTC: tz=datetime.timezone.utc
+
     pv('strftime format used: ``%s\'\'\n'%fmt)
-    print(datetime.datetime.now().strftime(fmt))
+    print(datetime.datetime.now(tz).strftime(fmt))
 
 ##########################################################################
 ##########################################################################
@@ -353,7 +356,8 @@ def main(argv):
     stat.add_argument('--size-budget',type=auto_int,default=None,help='''show remaining headroom''')
     stat.set_defaults(fun=stat_cmd)
     
-    strftime=subparsers.add_parser('strftime',help='format date like strftime/date +XXX')
+    strftime=subparsers.add_parser('strftime',help='format current date/time like strftime/date +XXX')
+    strftime.add_argument('-U','--UTC',action='store_true',help='retrieve time in UTC')
     strftime.add_argument('-d','--directive-prefix',default=None,help='directive prefix used in place of %%')
     strftime.add_argument('fmt',metavar='FMT',help='strftime format string')
     strftime.set_defaults(fun=strftime_cmd)
