@@ -264,6 +264,14 @@ def rename_cmd(options):
 ##########################################################################
 ##########################################################################
 
+def nproc_cmd(options):
+    import os
+
+    print(os.process_cpu_count())
+
+##########################################################################
+##########################################################################
+
 def shellcmd(options):
     import glob
     
@@ -317,6 +325,9 @@ def main(argv):
     move.add_argument('src',metavar='SRC',help='''folder/file to move''')
     move.add_argument('dest',metavar='DEST',help='''folder to move it to''')
     move.set_defaults(fun=move_cmd)
+
+    nproc=subparsers.add_parser('nproc',help='print number of processing units available')
+    nproc.set_defaults(fun=nproc_cmd)
 
     realpath=subparsers.add_parser('realpath',help='print real path of file')
     realpath.add_argument('path',metavar='PATH',help='path')
