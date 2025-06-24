@@ -47,7 +47,12 @@ def cp_cmd(options):
 def rmtree_cmd(options):
     import os,shutil
     
-    if os.path.isdir(options.path): shutil.rmtree(options.path)
+    if os.path.isdir(options.path):
+        try: shutil.rmtree(options.path)
+        except Exception as e:
+            sys.stderr.write('FATAL: %s\n'%e)
+            sys.stderr.write('FATAL: failed to rm-tree: %s\n'%options.path)
+            sys.exit(1)
 
 ##########################################################################
 ##########################################################################
