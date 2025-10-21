@@ -36,6 +36,13 @@ def pv(x):
 ##########################################################################
 ##########################################################################
 
+def fatal(message):
+    sys.stderr.write('FATAL: %s\n'%message)
+    sys.exit(1)
+
+##########################################################################
+##########################################################################
+
 def cp_cmd(options):
     import shutil
     
@@ -277,6 +284,45 @@ def nproc_cmd(options):
 ##########################################################################
 ##########################################################################
 
+def get_xdigit(c):
+    if c>='0' and c<='9': return ord(c)-ord('0')
+    elif c>='A' and c<='F': return 10+ord(c)-ord('A')
+    elif c>='a' and c<='f': return 10+ord(c)-ord('a')
+    else: return None
+
+def echo_bytes_cmd(options):
+    if len(options.escape_char)!=1:
+        fatal('invalid escape char: %s\n'%options.escape_char)
+
+    decoded=bytearray()
+    i=0
+    while i<len(options.string):
+        if options.string[i]==options.escape_char:
+            if i+3>len(options.string):
+                fatal('invalid escape sequence: %s'%options.string[i:])
+
+            h=get_xdigit(options.string[i+1])
+            l=get_xdigit(options.string[i+2])
+            if h is None or l is None:
+                fatal('invalid escape sequence: %s'%options.string[i:i+3])
+
+            decoded.append(h<<4|l)
+            i+=3
+        else:
+            byte=ord(options.string[i])
+            if byte>=256:
+                fatal('not a byte: %s'%options.string[i])
+                
+            decoded.append(byte)
+            i+=1
+
+    sys.stdout.buffer.write(decoded)
+    sys.stdout.flush()
+    if options.newline: sys.stdout.write('\n')
+    
+##########################################################################
+##########################################################################
+
 def shellcmd(options):
     import glob
     
@@ -322,6 +368,12 @@ def main(argv):
     cp.add_argument('dest',metavar='DEST',help='file/folder path to copy to')
     cp.set_defaults(fun=cp_cmd)
 
+    echo_bytes=subparsers.add_parser('echo-bytes',help='echo percent-encoded bytes to stdout')
+    echo_bytes.add_argument('-e','--escape-char',default='%',help='''escape char to use''')
+    echo_bytes.add_argument('--newline',action='store_true',help='''print a newline after output''')
+    echo_bytes.add_argument('string',metavar='STRING',help='''encoded string to print''')
+    echo_bytes.set_defaults(fun=echo_bytes_cmd)
+    
     mkdir=subparsers.add_parser('mkdir',help='create folder structure')
     mkdir.add_argument('paths',metavar='FOLDER',default=[],nargs='+',help='folder structure to create')
     mkdir.set_defaults(fun=mkdir_cmd)
