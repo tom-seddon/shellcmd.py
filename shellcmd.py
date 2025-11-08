@@ -282,7 +282,10 @@ def rename_cmd(options):
 def nproc_cmd(options):
     import os
 
-    print(os.process_cpu_count())
+    if 'process_cpu_count' in dir(os):
+        # Python 3.13 or later.
+        print(os.process_cpu_count())
+    else: print(os.cpu_count())
 
 ##########################################################################
 ##########################################################################
