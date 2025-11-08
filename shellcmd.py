@@ -45,8 +45,11 @@ def fatal(message):
 
 def cp_cmd(options):
     import shutil
-    
-    shutil.copy(options.src,options.dest)
+
+    try: shutil.copy(options.src,options.dest)
+    except FileNotFoundError as e:
+        sys.stderr.write('''FATAL: %s\n'''%e)
+        sys.exit(1)
 
 ##########################################################################
 ##########################################################################
