@@ -322,9 +322,12 @@ def echo_bytes_cmd(options):
             decoded.append(byte)
             i+=1
 
-    sys.stdout.buffer.write(decoded)
-    sys.stdout.flush()
-    if options.newline: sys.stdout.write('\n')
+    if options.output_path is None:
+        sys.stdout.buffer.write(decoded)
+        sys.stdout.flush()
+        if options.newline: sys.stdout.write('\n')
+    else:
+        with open(options.output_path,'wb') as f: f.write(decoded)
     
 ##########################################################################
 ##########################################################################
@@ -374,10 +377,11 @@ def main(argv):
     cp.add_argument('dest',metavar='DEST',help='file/folder path to copy to')
     cp.set_defaults(fun=cp_cmd)
 
-    echo_bytes=subparsers.add_parser('echo-bytes',help='echo percent-encoded bytes to stdout')
+    echo_bytes=subparsers.add_parser('echo-bytes',help='echo percent-encoded bytes to stdout or (binary) file')
     echo_bytes.add_argument('-e','--escape-char',default='%',help='''escape char to use''')
-    echo_bytes.add_argument('--newline',action='store_true',help='''print a newline after output''')
+    echo_bytes.add_argument('--newline',action='store_true',help='''when writing to stdout, print a newline after output''')
     echo_bytes.add_argument('string',metavar='STRING',help='''encoded string to print''')
+    echo_bytes.add_argument('-o','--output',metavar='FILE',dest='output_path',help='''file to write output to (as binary)''')
     echo_bytes.set_defaults(fun=echo_bytes_cmd)
     
     mkdir=subparsers.add_parser('mkdir',help='create folder structure')
