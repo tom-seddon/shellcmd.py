@@ -328,6 +328,16 @@ def echo_bytes_cmd(options):
         if options.newline: sys.stdout.write('\n')
     else:
         with open(options.output_path,'wb') as f: f.write(decoded)
+
+##########################################################################
+##########################################################################
+
+def echo_emacs_compilation_mode_marker_cmd(options):
+    import os
+
+    if options.force or os.getenv('INSIDE_EMACS') is not None:
+        prefix='Leaving' if options.leave else 'Entering'
+        print("shellcmd.py: %s directory '%s'"%(prefix,os.getcwd()))
     
 ##########################################################################
 ##########################################################################
@@ -383,6 +393,11 @@ def main(argv):
     echo_bytes.add_argument('string',metavar='STRING',help='''encoded string to print''')
     echo_bytes.add_argument('-o','--output',metavar='FILE',dest='output_path',help='''file to write output to (as binary)''')
     echo_bytes.set_defaults(fun=echo_bytes_cmd)
+
+    echo_emacs_compilation_mode_marker=subparsers.add_parser('echo-emacs-compilation-mode-marker',help='''if apparently running inside Emacs, print a message to stdout that Emacs compilation mode can recognise to figure out the cwd''')
+    echo_emacs_compilation_mode_marker.add_argument('-l','--leave',help='''print a Leaving message rather than an Entering message''')
+    echo_emacs_compilation_mode_marker.add_argument('-f','--force',action='store_true',help='''always print a message, even if not obviously running inside Emacs''')
+    echo_emacs_compilation_mode_marker.set_defaults(fun=echo_emacs_compilation_mode_marker_cmd)
     
     mkdir=subparsers.add_parser('mkdir',help='create folder structure')
     mkdir.add_argument('paths',metavar='FOLDER',default=[],nargs='+',help='folder structure to create')
