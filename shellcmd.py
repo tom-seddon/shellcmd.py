@@ -338,7 +338,53 @@ def echo_emacs_compilation_mode_marker_cmd(options):
     if options.force or os.getenv('INSIDE_EMACS') is not None:
         prefix='Leaving' if options.leave else 'Entering'
         print("shellcmd.py: %s directory '%s'"%(prefix,os.getcwd()))
-    
+
+##########################################################################
+##########################################################################
+
+def get_copyable_argv(argv):
+    assert isinstance(argv,list),type(argv)
+
+    def quote(x):
+        assert isinstance(x,str),type(x)
+
+        if sys.platform=='win32':
+            if not x.startswith('"') and ' ' in x: return '"%s"'%x
+            else: return x
+        else: return shlex.quote(x)
+
+    return ' '.join([quote(arg) for arg in argv])
+
+def must_capture_subprocess(argv):
+    try:
+        result=subprocess.check_output(argv,text=True)
+        return result.strip()
+    except subprocess.CalledProcessError as e:
+        fatal('failed with return code %d: %s'%(e.returncode,get_copyable_argv(argv)))
+
+##########################################################################
+##########################################################################
+
+def git_build_suffix_cmd(options):
+    global subprocess
+    import subprocess,shlex,datetime
+
+    s=must_capture_subprocess(['git','log','-1','--format=%cd','--date=iso-strict'])
+    timestamp=datetime.datetime.fromisoformat(s.strip())
+    timestamp=timestamp.astimezone(tz=datetime.timezone.utc)
+
+    commit_hash=must_capture_subprocess(['git','log','-1','--format=%h'])
+
+    if options.ignore_dirty_working_copy: dirty=False
+    else:
+        s=must_capture_subprocess(['git','status','--porcelain'])
+        dirty=len(s)!=0
+
+    result='%s-%s%s'%(timestamp.strftime('%Y%m%d-%H%M%S'),
+                      commit_hash,
+                      '!' if dirty else '')
+    print(result)
+
 ##########################################################################
 ##########################################################################
 
@@ -398,6 +444,10 @@ def main(argv):
     echo_emacs_compilation_mode_marker.add_argument('-l','--leave',help='''print a Leaving message rather than an Entering message''')
     echo_emacs_compilation_mode_marker.add_argument('-f','--force',action='store_true',help='''always print a message, even if not obviously running inside Emacs''')
     echo_emacs_compilation_mode_marker.set_defaults(fun=echo_emacs_compilation_mode_marker_cmd)
+
+    git_build_suffix=subparsers.add_parser('git-build-suffix',help='''print my preferred kind of build suffix, based on git head revision: UTC timestamp of head revision; hash of head revision; ! to indicate dirty working copy''')
+    git_build_suffix.add_argument('--ignore-dirty-working-copy',action='store_true',help='''don't add a ! if the working copy is dirty''')
+    git_build_suffix.set_defaults(fun=git_build_suffix_cmd)
     
     mkdir=subparsers.add_parser('mkdir',help='create folder structure')
     mkdir.add_argument('paths',metavar='FOLDER',default=[],nargs='+',help='folder structure to create')
