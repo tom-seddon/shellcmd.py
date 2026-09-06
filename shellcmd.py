@@ -385,6 +385,10 @@ def git_build_suffix_cmd(options):
                       '!' if dirty else '')
     print(result)
 
+    if dirty:
+        if options.fail_when_dirty_working_copy:
+            fatal('working copy is dirty')
+
 ##########################################################################
 ##########################################################################
 
@@ -447,6 +451,7 @@ def main(argv):
 
     git_build_suffix=subparsers.add_parser('git-build-suffix',help='''print my preferred kind of build suffix, based on git head revision: UTC timestamp of head revision; hash of head revision; ! to indicate dirty working copy''')
     git_build_suffix.add_argument('--ignore-dirty-working-copy',action='store_true',help='''don't add a ! if the working copy is dirty''')
+    git_build_suffix.add_argument('--fail-when-dirty-working-copy',action='store_true',help='''exit with process failure if the working copy is dirty''')
     git_build_suffix.set_defaults(fun=git_build_suffix_cmd)
     
     mkdir=subparsers.add_parser('mkdir',help='create folder structure')
